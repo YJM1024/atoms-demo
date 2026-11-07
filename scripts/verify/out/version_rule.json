@@ -1,0 +1,208 @@
+[
+ {
+  "label": "A 需求（基础版本有运行时错误，需自动修复）",
+  "added_versions": 1,
+  "head": 2,
+  "error": null,
+  "passed": true,
+  "fixRounds": 1,
+  "tests": [
+   2,
+   0
+  ],
+  "seconds": 20,
+  "rows": [
+   {
+    "v": 1,
+    "mode": "full",
+    "fix_rounds": 0,
+    "test_passed": null,
+    "issues": 0,
+    "lines": 9
+   },
+   {
+    "v": 2,
+    "mode": "patch",
+    "fix_rounds": 1,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 24
+   }
+  ]
+ },
+ {
+  "label": "A 对话中展示的修复过程",
+  "fix_messages": [
+   "第 1 轮修复完成：通过 **2** 个补丁修复。修复结果仍属于 v2 的草稿，不单独保存为版本，交给测试工程师复测。"
+  ],
+  "tester_reports": 2
+ },
+ {
+  "label": "B 增量修改",
+  "added_versions": 1,
+  "head": 3,
+  "error": null,
+  "passed": true,
+  "fixRounds": 0,
+  "tests": [
+   0
+  ],
+  "seconds": 6,
+  "rows": [
+   {
+    "v": 1,
+    "mode": "full",
+    "fix_rounds": 0,
+    "test_passed": null,
+    "issues": 0,
+    "lines": 9
+   },
+   {
+    "v": 2,
+    "mode": "patch",
+    "fix_rounds": 1,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 24
+   },
+   {
+    "v": 3,
+    "mode": "patch",
+    "fix_rounds": 0,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 27
+   }
+  ]
+ },
+ {
+  "label": "C 回滚到 v2",
+  "added_versions": 1,
+  "head": 4,
+  "error": null,
+  "passed": null,
+  "fixRounds": null,
+  "tests": null,
+  "seconds": 0,
+  "rows": [
+   {
+    "v": 1,
+    "mode": "full",
+    "fix_rounds": 0,
+    "test_passed": null,
+    "issues": 0,
+    "lines": 9
+   },
+   {
+    "v": 2,
+    "mode": "patch",
+    "fix_rounds": 1,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 24
+   },
+   {
+    "v": 3,
+    "mode": "patch",
+    "fix_rounds": 0,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 27
+   },
+   {
+    "v": 4,
+    "mode": "rollback",
+    "fix_rounds": 0,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 24
+   }
+  ]
+ },
+ {
+  "label": "C 回滚代码一致",
+  "same_as_v2": true
+ },
+ {
+  "label": "D 修复上限为 0（测试未通过也只存一个版本）",
+  "added_versions": 1,
+  "head": 2,
+  "error": null,
+  "passed": false,
+  "fixRounds": 0,
+  "tests": [
+   4
+  ],
+  "seconds": 168,
+  "rows": [
+   {
+    "v": 1,
+    "mode": "full",
+    "fix_rounds": 0,
+    "test_passed": null,
+    "issues": 0,
+    "lines": 9
+   },
+   {
+    "v": 2,
+    "mode": "rewrite",
+    "fix_rounds": 0,
+    "test_passed": false,
+    "issues": 4,
+    "lines": 33
+   }
+  ]
+ },
+ {
+  "label": "E 再次自动修复（更新同一版本）",
+  "added_versions": 0,
+  "head": 2,
+  "error": null,
+  "passed": true,
+  "fixRounds": 2,
+  "tests": [
+   4,
+   2,
+   0
+  ],
+  "seconds": 151,
+  "rows": [
+   {
+    "v": 1,
+    "mode": "full",
+    "fix_rounds": 0,
+    "test_passed": null,
+    "issues": 0,
+    "lines": 9
+   },
+   {
+    "v": 2,
+    "mode": "rewrite",
+    "fix_rounds": 2,
+    "test_passed": true,
+    "issues": 0,
+    "lines": 338
+   }
+  ]
+ },
+ {
+  "label": "F 中途中断（测试前）",
+  "added_versions": 0,
+  "head": 1,
+  "error": "模拟中断：用户在测试前停止了生成",
+  "passed": null,
+  "fixRounds": null,
+  "tests": null,
+  "seconds": 7,
+  "rows": [
+   {
+    "v": 1,
+    "mode": "full",
+    "fix_rounds": 0,
+    "test_passed": null,
+    "issues": 0,
+    "lines": 9
+   }
+  ]
+ }
+]

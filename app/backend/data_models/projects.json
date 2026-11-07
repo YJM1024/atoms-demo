@@ -1,0 +1,38 @@
+{
+    "title": "projects",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "autoincrement": true,
+            "primary_key": true
+        },
+        "user_id": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "prompt": {
+            "type": "string",
+            "format": "text"
+        },
+        "code": {
+            "type": "string",
+            "format": "text"
+        },
+        "messages": {
+            "type": "string",
+            "format": "text"
+        },
+        "version": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "user_id",
+        "title",
+        "prompt"
+    ]
+}

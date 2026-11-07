@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>待办清单</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --bg1: #eef2ff;
+    --bg2: #fdf2f8;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #9ca3af;
+    --border: #e5e7eb;
+    --danger: #ef4444;
+    --success: #10b981;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 48px 16px;
+  }
+  .app {
+    width: 100%;
+    max-width: 560px;
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--primary), #ec4899);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 2px;
+  }
+  header p { color: var(--muted); margin-top: 6px; font-size: 14px; }
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: 0 20px 50px -20px rgba(99,102,241,.35), 0 2px 6px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+  form.add {
+    display: flex;
+    gap: 10px;
+    padding: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  form.add input {
+    flex: 1;
+    min-width: 0;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  form.add input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+  }
+  form.add button {
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 0 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    white-space: nowrap;
+  }
+  form.add button:hover { background: var(--primary-dark); }
+  form.add button:active { transform: scale(.96); }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 18px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .count { color: #6b7280; }
+  .count strong { color: var(--primary); font-size: 16px; }
+  .filters {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 10px;
+    padding: 3px;
+  }
+  .filters button {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .filters button.active {
+    background: #fff;
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  }
+  ul.list { list-style: none; max-height: 55vh; overflow-y: auto; }
+  li.item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    animation: slideIn .25s ease;
+    transition: background .15s;
+  }
+  li.item:hover { background: #fafafa; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+  }
+  li.item.removing { animation: slideOut .2s ease forwards; }
+  @keyframes slideOut {
+    to { opacity: 0; transform: translateX(30px); }
+  }
+  .check {
+    width: 24px; height: 24px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .check:hover { border-color: var(--success); }
+  .check svg { width: 14px; height: 14px; opacity: 0; transition: opacity .2s; }
+  li.done .check { background: var(--success); border-color: var(--success); }
+  li.done .check svg { opacity: 1; }
+  .text {
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    word-break: break-word;
+    transition: color .2s;
+    cursor: text;
+  }
+  li.done .text { color: var(--muted); text-decoration: line-through; }
+  .edit-input {
+    flex: 1;
+    font-size: 16px;
+    padding: 4px 8px;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    outline: none;
+    min-width: 0;
+  }
+  .del {
+    border: none;
+    background: transparent;
+    color: #d1d5db;
+    cursor: pointer;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .del:hover { color: var(--danger); background: #fef2f2; }
+  .del svg { width: 18px; height: 18px; }
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+  }
+  .empty .icon { font-size: 44px; margin-bottom: 10px; }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .footer button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .footer button:hover:not(:disabled) { color: var(--danger); background: #fef2f2; }
+  .footer button:disabled { opacity: .4; cursor: default; }
+  .hint { text-align: center; color: var(--muted); font-size: 12px; margin-top: 14px; }
+  @media (max-width: 480px) {
+    body { padding: 24px 10px; }
+    header h1 { font-size: 28px; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .filters { justify-content: space-between; }
+    .filters button { flex: 1; }
+    .count { text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>待办清单</h1>
+    <p id="dateText"></p>
+  </header>
+  <div class="card">
+    <form class="add" id="addForm">
+      <input id="newInput" type="text" placeholder="添加一个新任务…" maxlength="200" autocomplete="off">
+      <button type="submit">添加</button>
+    </form>
+    <div class="toolbar">
+      <div class="count" id="count"></div>
+      <div class="filters" id="filters">
+        <button data-filter="all" class="active">全部</button>
+        <button data-filter="active">进行中</button>
+        <button data-filter="done">已完成</button>
+      </div>
+    </div>
+    <ul class="list" id="list"></ul>
+    <div class="footer">
+      <span id="total"></span>
+      <button id="clearDone">清除已完成</button>
+    </div>
+  </div>
+  <p class="hint">提示：双击任务文字可编辑，按 Enter 保存，Esc 取消</p>
+</div>
+
+<script>
+(function () {
+  const KEY = 'todo-app-v1';
+  let todos = [];
+  let filter = 'all';
+  let memoryStore = null;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        todos = Array.isArray(data.todos) ? data.todos : [];
+        filter = ['all','active','done'].includes(data.filter) ? data.filter : 'all';
+      }
+    } catch (e) {
+      if (memoryStore) { todos = memoryStore.todos; filter = memoryStore.filter; }
+    }
+  }
+  function save() {
+    const data = { todos, filter };
+    try { localStorage.setItem(KEY, JSON.stringify(data)); }
+    catch (e) { memoryStore = JSON.parse(JSON.stringify(data)); }
+  }
+
+  const $ = id => document.getElementById(id);
+  const listEl = $('list'), countEl = $('count'), totalEl = $('total');
+  const input = $('newInput'), clearBtn = $('clearDone');
+
+  const d = new Date();
+  const week = ['日','一','二','三','四','五','六'];
+  $('dateText').textContent = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${week[d.getDay()]}`;
+
+  const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const delSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function render() {
+    const visible = todos.filter(t => filter === 'all' ? true : filter === 'active' ? !t.done : t.done);
+    listEl.innerHTML = '';
+    if (visible.length === 0) {
+      const msg = {
+        all: ['📝', '还没有任务，添加一个开始吧'],
+        active: ['🎉', '太棒了，所有任务都完成了'],
+        done: ['⏳', '还没有已完成的任务']
+      }[filter];
+      listEl.innerHTML = `<li class="empty"><div class="icon">${msg[0]}</div>${msg[1]}</li>`;
+    } else {
+      visible.forEach(t => {
+        const li = document.createElement('li');
+        li.className = 'item' + (t.done ? ' done' : '');
+        li.dataset.id = t.id;
+        li.innerHTML = `<button class="check" title="${t.done ? '标记为未完成' : '标记为完成'}" aria-label="切换完成状态">${checkSvg}</button>
+          <span class="text"></span>

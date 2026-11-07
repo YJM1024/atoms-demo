@@ -1,0 +1,42 @@
+# Credentials and local environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Dependencies, build output and caches
+node_modules/
+dist/
+build/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+
+# Runtime data
+logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated verification bundles and screenshots
+scripts/verify/out/*.js
+scripts/verify/out/*_entry.ts
+scripts/verify/out/*.png
+playwright-report/
+test-results/
+
+# Platform deployment metadata and temporary backups
+.atoms/.skill-deploy/
+.mgx/
+*.bak
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,69 @@
+{
+  "status": "success",
+  "results": [
+    {
+      "status": "success",
+      "filename": "logo-mark.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxu5qcamca/logo-mark.png",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxu5qcamca/logo-mark.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxu5qcamca/logo-mark.png",
+      "requested_size": "1024x1024",
+      "size": "1024x1024",
+      "size_adjustments": []
+    },
+    {
+      "status": "success",
+      "filename": "hero-atmosphere.jpg",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxvkicambq/hero-atmosphere.png",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxvkicambq/hero-atmosphere.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxvkicambq/hero-atmosphere.png",
+      "requested_size": "1536x864",
+      "size": "1536x864",
+      "size_adjustments": []
+    },
+    {
+      "status": "success",
+      "filename": "agent-product.jpg",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxvxicamba/agent-product.png",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxvxicamba/agent-product.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxvxicamba/agent-product.png",
+      "requested_size": "1280x720",
+      "size": "1280x720",
+      "size_adjustments": []
+    },
+    {
+      "status": "success",
+      "filename": "agent-architect.jpg",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxwqycamaq/agent-architect.png",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxwqycamaq/agent-architect.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxwqycamaq/agent-architect.png",
+      "requested_size": "1280x720",
+      "size": "1280x720",
+      "size_adjustments": []
+    },
+    {
+      "status": "success",
+      "filename": "agent-engineer.jpg",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxw5qcamda/agent-engineer.png",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxw5qcamda/agent-engineer.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/zzjxw5qcamda/agent-engineer.png",
+      "requested_size": "1280x720",
+      "size": "1280x720",
+      "size_adjustments": []
+    },
+    {
+      "status": "success",
+      "filename": "agent-tester.jpg",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/z2ht75qcamba/agent-tester.png",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/z2ht75qcamba/agent-tester.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1652808/2026-11-05/z2ht75qcamba/agent-tester.png",
+      "requested_size": "1280x720",
+      "size": "1280x720",
+      "size_adjustments": []
+    }
+  ],
+  "success_count": 6,
+  "failed_count": 0,
+  "running_count": 0,
+  "message": "Generated 6/6 images total"
+}

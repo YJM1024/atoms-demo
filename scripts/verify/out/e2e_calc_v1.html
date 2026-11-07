@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能计算器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1115;--panel:#181b22;--panel2:#1f232c;--line:#2a2f3a;
+  --txt:#e8ecf3;--muted:#8b93a3;--amber:#ffb020;--cyan:#2dd4bf;--danger:#ff6b6b;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:radial-gradient(1200px 600px at 20% -10%,#1b2230 0%,var(--bg) 55%);
+  color:var(--txt);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.app{
+  display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;
+  width:100%;max-width:900px;
+}
+.calc{
+  background:var(--panel);border:1px solid var(--line);border-radius:22px;
+  padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+.display{
+  background:var(--panel2);border:1px solid var(--line);border-radius:16px;
+  padding:16px 18px;margin-bottom:16px;min-height:132px;
+  display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+}
+.expr{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:20px;color:var(--muted);text-align:right;word-break:break-all;
+  line-height:1.35;min-height:27px;max-height:81px;overflow-y:auto;
+}
+.expr .caret{display:inline-block;width:2px;height:20px;background:var(--amber);
+  vertical-align:-3px;margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.result{
+  font-size:38px;font-weight:700;text-align:right;letter-spacing:.5px;
+  color:var(--txt);word-break:break-all;line-height:1.15;transition:color .15s;
+}
+.result.err{color:var(--danger);font-size:20px;font-weight:600}
+.result.preview{color:var(--cyan)}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button.key{
+  border:1px solid var(--line);background:var(--panel2);color:var(--txt);
+  border-radius:14px;font-size:20px;font-weight:600;height:58px;cursor:pointer;
+  transition:transform .06s,background .15s,border-color .15s,box-shadow .15s;
+  user-select:none;font-family:inherit;
+}
+button.key:hover{background:#262b36;border-color:#3a4150}
+button.key:active,button.key.press{transform:scale(.94);background:#2e3441}
+button.key.op{color:var(--amber);font-size:22px}
+button.key.fn{color:var(--cyan);font-size:17px}
+button.key.eq{background:linear-gradient(180deg,#ffc043,#f59e0b);color:#1a1200;border-color:#f59e0b;font-size:24px}
+button.key.eq:hover{background:linear-gradient(180deg,#ffcb5c,#f9a90f)}
+button.key.eq:active{background:#e08c00}
+button.key.wide{grid-column:span 2}
+.side{
+  background:var(--panel);border:1px solid var(--line);border-radius:22px;
+  padding:16px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);
+  max-height:520px;
+}
+.side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.side-head h2{font-size:15px;font-weight:700;letter-spacing:.5px;color:var(--txt)}
+.clear-hist{
+  background:transparent;border:1px solid var(--line);color:var(--muted);
+  border-radius:8px;font-size:12px;padding:5px 10px;cursor:pointer;font-family:inherit;
+  transition:.15s;
+}
+.clear-hist:hover{color:var(--danger);border-color:var(--danger)}
+.hist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.hist::-webkit-scrollbar{width:6px}
+.hist::-webkit-scrollbar-thumb{background:#333a47;border-radius:3px}
+.hist-item{
+  background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;cursor:pointer;transition:.15s;text-align:right;
+}
+.hist-item:hover{border-color:var(--amber);background:#242a35}
+.hist-item .he{
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--muted);
+  word-break:break-all;line-height:1.3;
+}
+.hist-item .hr{font-size:18px;font-weight:700;color:var(--cyan);margin-top:3px;word-break:break-all}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 10px;line-height:1.7}
+@media(max-width:760px){
+  .app{grid-template-columns:1fr;max-width:440px}
+  .side{max-height:260px}
+  .result{font-size:32px}
+  button.key{height:52px;font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="calc">
+    <div class="display">
+      <div class="expr" id="expr"><span class="caret"></span></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="keys" id="keys">
+      <button class="key fn" data-act="clear">AC</button>
+      <button class="key fn" data-act="back">⌫</button>
+      <button class="key fn" data-act="paren">( )</button>
+      <button class="key op" data-val="÷">÷</button>
+
+      <button class="key" data-val="7">7</button>
+      <button class="key" data-val="8">8</button>
+      <button class="key" data-val="9">9</button>
+      <button class="key op" data-val="×">×</button>
+
+      <button class="key" data-val="4">4</button>
+      <button class="key" data-val="5">5</button>
+      <button class="key" data-val="6">6</button>
+      <button class="key op" data-val="−">−</button>
+
+      <button class="key" data-val="1">1</button>
+      <button class="key" data-val="2">2</button>
+      <button class="key" data-val="3">3</button>
+      <button class="key op" data-val="+">+</button>
+
+      <button class="key fn" data-act="neg">±</button>
+      <button class="key" data-val="0">0</button>
+      <button class="key" data-val=".">.</button>
+      <button class="key fn" data-val="%">%</button>
+
+      <button class="key eq wide" data-act="equals">=</button>
+      <button class="key op" data-val="÷" style="display:none"></button>
+      <button class="key fn" data-act="back2" style="display:none"></button>
+    </div>
+  </div>
+  <aside class="side">
+    <div class="side-head">
+      <h2>历史记录</h2>
+      <button class="clear-hist" id="clearHist">清空</button>
+    </div>
+    <div class="hist" id="hist"></div>
+  </aside>
+</div>
+<script>
+(function(){
+  "use strict";
+  var exprEl = document.getElementById('expr');
+  var resultEl = document.getElementById('result');
+  var histEl = document.getElementById('hist');
+  var keysEl = document.getElementById('keys');
+  var clearHistBtn = document.getElementById('clearHist');
+
+  var expr = '';
+  var history = [];
+  var lastError = false;
+
+  var STORE_KEY = 'smart_calc_history_v1';
+
+  function loadHistory(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return [];
+      var data = JSON.parse(raw);
+      if(!Array.isArray(data)) return [];
+      return data.filter(function(it){
+        return it && typeof it.expr === 'string' && typeof it.result === 'string';
+      }).slice(0,50);
+    }catch(e){ return []; }
+  }
+  function saveHistory(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(history.slice(0,50))); }catch(e){}
+  }
+
+  /* ---------- 表达式求值：tokenizer + 调度场算法 ---------- */
+  function tokenize(s){
+    var tokens = [], i = 0, n = s.length;
+    while(i < n){
+      var c = s[i];
+      if(c === ' '){ i++; continue; }
+      if(/[0-9.]/.test(c)){
+        var num = '';
+        while(i < n && /[0-9.]/.test(s[i])){ num += s[i]; i++; }
+        if((num.match(/\./g)||[]).length > 1) throw new Error('数字格式错误');
+        if(num === '.') throw new Error('数字格式错误');
+        tokens.push({t:'num', v:parseFloat(num)});
+        continue;
+      }
+      if(c === '+' || c === '-' || c === '−' || c === '×' || c === '÷' || c === '*' || c === '/'){
+        var op = c;
+        if(op === '−') op = '-';
+        if(op === '×') op = '*';
+        if(op === '÷') op = '/';
+        tokens.push({t:'op', v:op});
+        i++; continue;
+      }
+      if(c === '(' || c === ')'){ tokens.push({t:c}); i++; continue; }
+      if(c === '%'){ tokens.push({t:'pct'}); i++; continue; }
+      throw new Error('无法识别的字符: ' + c);
+    }
+    return tokens;
+  }
+
+  // 处理一元负号 & 百分号（在 token 层做预处理）
+  function preprocess(tokens){
+    var out = [];
+    for(var i=0;i<tokens.length;i++){
+      var tk = tokens[i];
+      // 一元负号
+      if(tk.t === 'op' && tk.v === '-'){
+        var prev = out[out.length-1];
+        var isUnary = !prev || prev.t === 'op' || prev.t === '(';
+        if(isUnary){
+          // 找下一个数字或括号
+          var next = tokens[i+1];
+          if(next && next.t === 'num'){
+            out.push({t:'num', v:-next.v});
+            i++;
+            // 若后面紧跟 %，交给后续处理
+            continue;
+          } else if(next && next.t === '('){
+            out.push({t:'num', v:-1});
+            out.push({t:'op', v:'*'});
+            continue;
+          } else {
+            throw new Error('表达式不完整');
+          }
+        }
+      }
+      out.push(tk);
+    }
+    // 处理百分号：num% => num/100 ； (expr)% 暂不支持复杂，按 /100 处理
+    var res = [];
+    for(var j=0;j<out.length;j++){
+      var t = out[j];
+      if(t.t === 'pct'){
+        var prevT = res[res.length-1];
+        if(!prevT || (prevT.t !== 'num' && prevT.t !== ')')) throw new Error('百分号位置错误');
+        // 若前面是 num 且再前面是 + - * / 或开头，则 num/100
+        // 若前面是 num 且再前面是 * 或 /，也按 num/100（简化统一处理）
+        res.push({t:'op', v:'/'});
+        res.push({t:'num', v:100});
+      } else {
+        res.push(t);
+      }
+    }
+    return res;
+  }
+
+  function toRPN(tokens){
+    var output = [], stack = [];
+    var prec = {'+':1,'-':1,'*':2,'/':2};
+    for(var i=0;i<tokens.length;i++){
+      var tk = tokens[i];
+      if(tk.t === 'num'){ output.push(tk); }
+      else if(tk.t === 'op'){
+        while(stack.length){
+          var top = stack[stack.length-1];
+          if(top.t === 'op' && prec[top.v] >= prec[tk.v]){ output.push(stack.pop()); }
+          else break;
+        }
+        stack.push(tk);
+      }
+      else if(tk.t === '('){ stack.push(tk); }
+      else if(tk.t === ')'){
+        var found = false;
+        while(stack.length){
+          var top2 = stack.pop();
+          if(top2.t === '('){ found = true; break; }
+          output.push(top2);
+        }
+        if(!found) throw new Error('括号不匹配');
+      }
+    }
+    while(stack.length){
+      var t = stack.pop();
+      if(t.t === '(') throw new Error('括号不匹配');
+      output.push(t);
+    }
+    return output;
+  }
+
+  function evalRPN(rpn){
+    var st = [];
+    for(var i=0;i<rpn.length;i++){
+      var tk = rpn[i];
+      if(tk.t === 'num'){ st.push(tk.v); }
+      else if(tk.t === 'op'){
+        if(st.length < 2) throw new Error('表达式不完整');
+        var b = st.pop(), a = st.pop(), r;
+        if(tk.v === '+') r = a + b;
+        else if(tk.v === '-') r = a - b;
+        else if(tk.v === '*') r = a * b;
+        else if(tk.v === '/'){
+          if(b === 0) throw new Error('除数不能为 0');
+          r = a / b;
+        }
+        st.push(r);
+      }
+    }
+    if(st.length !== 1) throw new Error('表达式不完整');
+    return st[0];
+  }
+
+  function formatNum(n){
+    if(!isFinite(n)) throw new Error('结果超出范围');
+    if(Object.is(n, -0)) n = 0;
+    var abs = Math.abs(n);
+    if(abs !== 0 && (abs >= 1e12 || abs < 1e-9)){
+      return n.toExponential(6).replace(/\.?0+e/,'e');
+    }
+    var r = Math.round(n * 1e10) / 1e10;
+    var s = String(r);
+    if(s.indexOf('e') !== -1) return s;
+    return s;
+  }
+
+  function evaluate(str){
+    var trimmed = str.trim();
+    if(!trimmed) throw new Error('请输入表达式');
+    var tokens = tokenize(trimmed);
+    if(!tokens.length) throw new Error('请输入表达式');
+    var pre = preprocess(tokens);
+    var rpn = toRPN(pre);
+    var val = evalRPN(rpn);
+    return formatNum(val);
+  }
+
+  /* ---------- 渲染 ---------- */
+  function renderExpr(){
+    exprEl.innerHTML = '';
+    var span = document.createElement('span');
+    span.textContent = expr;
+    exprEl.appendChild(span);
+    var caret = document.createElement('span');
+    caret.className = 'caret';
+    exprEl.appendChild(caret);
+    exprEl.scrollTop = exprEl.scrollHeight;
+  }
+
+  function renderResult(){
+    if(lastError){
+      resultEl.className = 'result err';
+      return;
+    }
+    if(!expr.trim()){
+      resultEl.className = 'result';
+      resultEl.textContent = '0';
+      return;
+    }
+    try{
+      var r = evaluate(expr);
+      resultEl.className = 'result preview';
+      resultEl.textContent = r;
+    }catch(e){
+      resultEl.className = 'result';
+      resultEl.textContent = '';
+    }
+  }
+
+  function showError(msg){
+    lastError = true;
+    resultEl.className = 'result err';
+    resultEl.textContent = '⚠ ' + msg;
+  }
+
+  function renderAll(){
+    renderExpr();
+    renderResult();
+  }
+
+  function renderHistory(){
+    histEl.innerHTML = '';
+    if(!history.length){
+      var d = document.createElement('div');
+      d.className = 'empty';
+      d.textContent = '暂无记录\n完成一次计算后会显示在这里';
+      d.style.whiteSpace = 'pre-line';
+      histEl.appendChild(d);
+      return;
+    }
+    history.forEach(function(item, idx){
+      var div = document.createElement('div');
+      div.className = 'hist-item';
+      div.setAttribute('data-idx', idx);
+      var e = document.createElement('div');
+      e.className = 'he';
+      e.textContent = item.expr;
+      var r = document.createElement('div');
+      r.className = 'hr';
+      r.textContent = '= ' + item.result;
+      div.appendChild(e);
+      div.appendChild(r);
+      histEl.appendChild(div);
+    });
+  }
+
+  /* ---------- 输入逻辑 ---------- */
+  var OPS = ['+','−','×','÷'];
+
+  function isOp(ch){ return OPS.indexOf(ch) !== -1; }
+  function lastChar(){ return expr ? expr[expr.length-1] : ''; }
+
+  function inputValue(v){
+    lastError = false;
+    if(v === '.'){
+      // 找当前数字段
+      var m = expr.match(/[0-9.]*$/);
+      var seg = m ? m[0] : '';
+      if(seg.indexOf('.') !== -1) return;
+      if(!seg) expr += '0';
+      expr += '.';
+    } else if(isOp(v)){
+      var lc = lastChar();
+      if(!expr){ if(v === '−') expr += v; return; }
+      if(isOp(lc)){ expr = expr.slice(0,-1) + v; }
+      else if(lc === '('){ if(v === '−') expr += v; return; }
+      else if(lc === '.'){ expr = expr.slice(0,-1) + v; }
+      else expr += v;
+    } else if(v === '%'){
+      var lc2 = lastChar();
+      if(!expr) return;
+      if(/[0-9)]/.test(lc2)) expr += '%';
+    } else {
+      // 数字
+      var lc3 = lastChar();
+      if(lc3 === ')' ) expr += '×';
+      expr += v;
+    }
+    renderAll();
+  }
+
+  function toggleParen(){
+    lastError = false;
+    var open = (expr.match(/\(/g)||[]).length;
+    var close = (expr.match(/\)/g)||[]).length;
+    var lc = lastChar();
+    if(open > close && (/[0-9)%]/.test(lc))){
+      expr += ')';
+    } else if(!expr || isOp(lc) || lc === '('){
+      expr += '(';
+    } else {
+      expr += '×(';
+    }
+    renderAll();
+  }
+
+  function toggleNeg(){
+    lastError = false;
+    if(!expr){ expr = '−'; renderAll(); return; }
+    // 找到末尾的数字段（可能带小数）
+    var m = expr.match(/([0-9.]+)$/);
+    if(m){
+      var numStr = m[1];
+      var start = expr.length - numStr.length;
+      var before = expr.slice(0, start);
+      // 判断前面是否已有一元负号
+      if(before.slice(-1) === '−' && (before.length === 1 || isOp(before[before.length-2]) || before[before.length-2] === '(')){
+        expr = before.slice(0,-1) + numStr;
+      } else {
+        expr = before + '−' + numStr;
+      }
+    } else {
+      var lc = lastChar();
+      if(lc === ')'){ expr += '×(−'; }
+      else if(isOp(lc)){ expr += '(−'; }
+      else { expr += '(−'; }
+    }
+    renderAll();
+  }
+
+  function backspace(){
+    lastError = false;
+    if(!expr) return;
+    expr = expr.slice(0,-1);
+    renderAll();
+  }
+
+  function clearAll(){
+    lastError = false;
+    expr = '';
+    renderAll();
+  }
+
+  function equals(){
+    if(!expr.trim()) return;
+    try{
+      var r = evaluate(expr);
+      lastError = false;
+      resultEl.className = 'result';
+      resultEl.textContent = r;
+      history.unshift({expr: expr, result: r});
+      if(history.length > 50) history = history.slice(0,50);
+      saveHistory();
+      renderHistory();
+      expr = r;
+      renderExpr();
+    }catch(e){
+      showError(e.message || '表达式有误');
+    }
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  keysEl.addEventListener('click', function(ev){
+    var btn = ev.target.closest('button.key');
+    if(!btn) return;
+    var act = btn.getAttribute('data-act');
+    var val = btn.getAttribute('data-val');
+    if(act === 'clear') clearAll();
+    else if(act === 'back' || act === 'back2') backspace();
+    else if(act === 'paren') toggleParen();
+    else if(act === 'neg') toggleNeg();
+    else if(act === 'equals') equals();
+    else if(val !== null) inputValue(val);
+  });
+
+  histEl.addEventListener('click', function(ev){
+    var item = ev.target.closest('.hist-item');
+    if(!item) return;
+    var idx = parseInt(item.getAttribute('data-idx'), 10);
+    if(isNaN(idx) || !history[idx]) return;
+    lastError = false;
+    expr = history[idx].expr;
+    renderAll();
+  });
+
+  clearHistBtn.addEventListener('click', function(){
+    history = [];
+    saveHistory();
+    renderHistory();
+  });
+
+  /* ---------- 键盘 ---------- */
+  document.addEventListener('keydown', function(ev){
+    var k = ev.key;
+    if(k === 'Enter' || k === '='){
+      ev.preventDefault();
+      equals();
+      flashKey('[data-act="equals"]');
+      return;
+    }
+    if(k === 'Escape'){
+      ev.preventDefault();
+      clearAll();
+      flashKey('[data-act="clear"]');
+      return;
+    }
+    if(k === 'Backspace'){
+      ev.preventDefault();
+      backspace();
+      flashKey('[data-act="back"]');
+      return;
+    }
+    if(k === 'Delete'){
+      ev.preventDefault();
+      clearAll();
+      flashKey('[data-act="clear"]');
+      return;
+    }
+    if(k === '(' || k === ')'){
+      ev.preventDefault();
+      toggleParen();
+      flashKey('[data-act="paren"]');
+      return;
+    }
+    if(k === '%'){
+      ev.preventDefault();
+      inputValue('%');
+      flashKey('[data-val="%"]');
+      return;
+    }
+    if(k === '+' || k === '-' || k === '*' || k === '/'){
+      ev.preventDefault();
+      var map = {'+':'+','-':'−','*':'×','/':'÷'};
+      inputValue(map[k]);
+      flashKey('[data-val="' + map[k] + '"]');
+      return;
+    }
+    if(k === '.'){
+      ev.preventDefault();
+      inputValue('.');
+      flashKey('[data-val="."]');
+      return;
+    }
+    if(/^[0-9]$/.test(k)){
+      ev.preventDefault();
+      inputValue(k);
+      flashKey('[data-val="' + k + '"]');
+      return;
+    }
+  });
+
+  function flashKey(sel){
+    var el = keysEl.querySelector(sel);
+    if(!el) return;
+    el.classList.add('press');
+    setTimeout(function(){ el.classList.remove('press'); }, 110);
+  }
+
+  /* ---------- 初始化 ---------- */
+  history = loadHistory();
+  renderHistory();
+  renderAll();
+})();
+</script>
+</body>
+</html>

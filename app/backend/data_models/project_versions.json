@@ -1,0 +1,46 @@
+{
+    "title": "project_versions",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "user_id": {
+            "type": "string"
+        },
+        "project_id": {
+            "type": "integer"
+        },
+        "version": {
+            "type": "integer"
+        },
+        "code": {
+            "type": "string",
+            "format": "text"
+        },
+        "summary": {
+            "type": "string",
+            "format": "text"
+        },
+        "mode": {
+            "type": "string"
+        },
+        "fix_rounds": {
+            "type": "integer"
+        },
+        "test_passed": {
+            "type": "boolean"
+        },
+        "test_issues": {
+            "type": "string",
+            "format": "text"
+        }
+    },
+    "required": [
+        "id",
+        "user_id",
+        "project_id",
+        "version",
+        "code"
+    ]
+}

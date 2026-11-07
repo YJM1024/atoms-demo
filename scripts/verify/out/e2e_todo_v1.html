@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>轻待办</title>
+<style>
+  *{box-sizing:border-box}
+  :root{--primary:#4f6ef7;--text:#1f2430;--muted:#8b93a5;--line:#f0f2f7}
+  body{
+    margin:0;min-height:100vh;background:#f1f3f8;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    display:flex;justify-content:center;padding:40px 16px 56px;-webkit-font-smoothing:antialiased;
+  }
+  .app{
+    width:100%;max-width:560px;background:#fff;border-radius:20px;padding:26px 24px 18px;
+    box-shadow:0 12px 32px rgba(31,36,48,.08),0 1px 2px rgba(31,36,48,.05);
+  }
+  .head h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.3px}
+  .sub{margin:6px 0 20px;font-size:12.5px;color:var(--muted)}
+  .input-row{display:flex;gap:10px;margin-bottom:16px}
+  .input-row input{
+    flex:1;min-width:0;font-size:15px;color:var(--text);padding:13px 15px;border-radius:12px;
+    border:1.5px solid #e6e9f2;background:#f7f8fb;outline:none;transition:border-color .15s,background .15s,box-shadow .15s;
+  }
+  .input-row input::placeholder{color:#aeb5c5}
+  .input-row input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(79,110,247,.12)}
+  .add-btn{
+    flex:0 0 auto;border:0;border-radius:12px;padding:0 20px;background:var(--primary);color:#fff;
+    font-size:14.5px;font-weight:600;cursor:pointer;transition:background .15s,transform .15s;
+  }
+  .add-btn:hover{background:#3f5cea}
+  .add-btn:active{transform:scale(.97)}
+  .list{list-style:none;margin:0;padding:0}
+  .item{
+    display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line);
+    border-radius:10px;transition:background .15s,opacity .15s;
+  }
+  .item:last-child{border-bottom:0}
+  .item:hover{background:#fafbfe}
+  .check{
+    flex:0 0 auto;width:22px;height:22px;padding:0;border-radius:50%;border:1.6px solid #cfd5e3;
+    background:#fff;color:transparent;display:grid;place-items:center;cursor:pointer;
+    transition:background .15s,border-color .15s,color .15s;
+  }
+  .check:hover{border-color:var(--primary)}
+  .item.done .check{background:var(--primary);border-color:var(--primary);color:#fff}
+  .text{flex:1;font-size:15px;line-height:1.5;word-break:break-word;transition:color .15s}
+  .item.done .text{color:#9aa2b4;text-decoration:line-through;text-decoration-thickness:1.5px}
+  .del{
+    flex:0 0 auto;width:26px;height:26px;padding:0;border:0;border-radius:8px;background:transparent;
+    color:#b7bece;font-size:13px;line-height:1;display:grid;place-items:center;cursor:pointer;
+    opacity:0;transition:opacity .15s,background .15s,color .15s;
+  }
+  .item:hover .del,.del:focus-visible{opacity:1}
+  .del:hover{background:#ffecec;color:#e5484d}
+  .empty{padding:34px 10px 30px;text-align:center;color:#a7aebe;font-size:14px}
+  .empty-ico{display:block;font-size:26px;margin-bottom:8px}
+  .empty p{margin:0}
+  .bar{
+    margin-top:8px;padding-top:14px;border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  }
+  .remaining{font-size:12.5px;color:var(--muted)}
+  .filters{display:flex;gap:2px;background:#f2f4f8;padding:3px;border-radius:11px}
+  .filters button{
+    border:0;background:transparent;font-size:13px;font-weight:500;color:#7d8598;
+    padding:6px 12px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;
+  }
+  .filters button:hover{color:#4a5266}
+  .filters button.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 3px rgba(31,36,48,.12)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (hover:none){.del{opacity:.65}}
+  @media (max-width:520px){
+    body{padding:20px 12px 40px}
+    .app{padding:20px 16px 14px;border-radius:16px}
+    .add-btn{padding:0 16px}
+    .filters button{padding:6px 10px}
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="head">
+    <h1>轻待办</h1>
+    <p class="sub">回车添加 · 点击圆圈切换完成 · 悬停任务可删除</p>
+  </header>
+
+  <form id="addForm" class="input-row" autocomplete="off">
+    <input id="todoInput" type="text" maxlength="120" placeholder="今天要做点什么？" aria-label="新任务内容">
+    <button type="submit" class="add-btn">添加</button>
+  </form>
+
+  <ul id="list" class="list" aria-live="polite"></ul>
+
+  <div id="empty" class="empty" hidden>
+    <span class="empty-ico">🗒️</span>
+    <p id="emptyText">还没有任务</p>
+  </div>
+
+  <footer class="bar">
+    <span id="remaining" class="remaining">剩余 0 项</span>
+    <div class="filters" id="filters" role="tablist">
+      <button type="button" data-filter="all" class="active" role="tab" aria-selected="true">全部</button>
+      <button type="button" data-filter="active" role="tab" aria-selected="false">进行中</button>
+      <button type="button" data-filter="done" role="tab" aria-selected="false">已完成</button>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'qingtodo.v1';
+  var state = { todos: [], filter: 'all' };
+
+  var listEl = document.getElementById('list');
+  var emptyEl = document.getElementById('empty');
+  var emptyTextEl = document.getElementById('emptyText');
+  var remainingEl = document.getElementById('remaining');
+  var inputEl = document.getElementById('todoInput');
+  var formEl = document.getElementById('addForm');
+  var filtersEl = document.getElementById('filters');
+
+  var CHECK = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) { /* 存储不可用时保持内存态 */ }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      if (d && Array.isArray(d.todos)) {
+        state.todos = d.todos.filter(function (t) {
+          return t && typeof t.text === 'string' && t.text.trim() !== '';
+        }).map(function (t) {
+          return {
+            id: (typeof t.id === 'string' && t.id) ? t.id : uid(),
+            text: String(t.text).slice(0, 120),
+            done: !!t.done
+          };
+        });
+      }
+      if (d && ['all', 'active', 'done'].indexOf(d.filter) > -1) {
+        state.filter = d.filter;
+      }
+    } catch (e) {
+      state.todos = [];
+      state.filter = 'all';
+    }
+  }
+
+  function visible() {
+    return state.todos.filter(function (t) {
+      if (state.filter === 'active') return !t.done;
+      if (state.filter === 'done') return t.done;
+      return true;
+    });
+  }
+
+  function render() {
+    var items = visible();
+
+    listEl.innerHTML = items.map(function (t) {
+      return '<li class="item' + (t.done ? ' done' : '') + '" data-id="' + esc(t.id) + '">' +
+        '<button type="button" class="check" data-act="toggle" aria-pressed="' + t.done + '" aria-label="' +
+          (t.done ? '标记为进行中' : '标记为已完成') + '">' + CHECK + '</button>' +
+        '<span class="text">' + esc(t.text) + '</span>' +
+        '<button type="button" class="del" data-act="del" aria-label="删除任务" title="删除">✕</button>' +
+      '</li>';
+    }).join('');
+
+    emptyEl.hidden = items.length > 0;
+    if (items.length === 0) {
+      emptyTextEl.textContent =
+        state.todos.length === 0 ? '还没有任务，敲一条然后按回车吧' :
+        state.filter === 'active' ? '进行中的任务都清完了 🎉' :
+        state.filter === 'done' ? '还没有已完成的任务' : '这里空空如也';
+    }
+
+    var left = state.todos.filter(function (t) { return !t.done; }).length;
+    remainingEl.textContent = left > 0 ? '剩余 ' + left + ' 项未完成'
+      : (state.todos.length ? '全部完成啦 🎉' : '剩余 0 项');
+
+    Array.prototype.forEach.call(filtersEl.children, function (b) {
+      var on = b.getAttribute('data-filter') === state.filter;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+
+  function commit() {
+    save();
+    render();
+  }
+
+  formEl.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = inputEl.value.trim();
+    if (!text) { inputEl.focus(); return; }
+    state.todos.push({ id: uid(), text: text.slice(0, 120), done: false });
+    inputEl.value = '';
+    if (state.filter === 'done') state.filter = 'active';
+    commit();
+    inputEl.focus();
+  });
+
+  listEl.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('button[data-act]') : null;
+    if (!btn) return;
+    var li = btn.closest('li');
+    if (!li) return;
+    var id = li.getAttribute('data-id');
+    var idx = -1;
+    for (var i = 0; i < state.todos.length; i++) {
+      if (state.todos[i].id === id) { idx = i; break; }
+    }
+    if (idx < 0) return;
+    if (btn.getAttribute('data-act') === 'toggle') {
+      state.todos[idx].done = !state.todos[idx].done;
+    } else {
+      state.todos.splice(idx, 1);
+    }
+    commit();
+  });
+
+  filtersEl.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('button[data-filter]') : null;
+    if (!btn) return;
+    var f = btn.getAttribute('data-filter');
+    if (f === state.filter) return;
+    state.filter = f;
+    commit();
+  });
+
+  load();
+  render();
+  inputEl.focus();
+})();
+</script>
+</body>
+</html>
