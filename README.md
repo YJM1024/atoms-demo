@@ -55,29 +55,3 @@
 1. **P0：稳定交付。** 完善鉴权、限流、补丁定位和版本保存一致性，补齐登录到真实保存、刷新恢复、分享导出的回归验证。先保证现有流程可靠。
 2. **P1：提升生成质量与过程控制。** 增加典型业务验收用例、取消生成，以及耗时、模型用量和修复次数统计，让质量与成本可衡量。
 3. **P2：扩大应用范围。** 支持后台任务与恢复，再引入多文件工程和模型选择；同步调整预览、检测、版本和导出，保持完整体验。
-
-## 运行说明
-
-`app/frontend/` 为前端，`app/backend/` 为后端，`scripts/verify/` 为验证脚本。
-
-Atoms 内使用平台提供的运行环境。平台外需自行提供认证、数据库及 SDK 对应配置；完整的独立部署尚未验证。模型至少需要 `DEEPSEEK_API_KEY`，其他变量与默认值见 [`agent_llm.py`](app/backend/services/agent_llm.py)。
-
-```bash
-# 后端：先注入认证、数据库和模型所需环境变量
-cd app/backend
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-另开终端，从仓库根目录启动前端：
-
-```bash
-cd app/frontend
-pnpm install
-pnpm run dev
-# 静态检查与构建
-pnpm run lint
-pnpm run build
-```
-
-环境密钥、运行日志和构建产物不纳入仓库。
